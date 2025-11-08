@@ -3,11 +3,11 @@
 
 void SigHandler2(int signal);
 
-extern int *shm; 
+// extern int* shm_ptr;
 
-#define TOTAL_TAKEOFFS 20 // specified afuera
+#define TOTAL_TAKEOFFS 20  // specified afuera
 extern pid_t radioPID;
 
-void* TakeOffsFunction(); // para que tambien este en main type shi
+void* TakeOffsFunction();  // para que tambien este en main type shi
 
 #endif  // INCLUDE_FUNCTIONS_H_
