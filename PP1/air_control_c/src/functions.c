@@ -1,5 +1,7 @@
-#define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE 500
 #include "functions.h"
+// #define _POSIX_C_SOURCE 200809L
+#define TOTAL_TAKEOFFS 20
 
 #include <fcntl.h>
 #include <mqueue.h>
@@ -13,6 +15,7 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <time.h>
 
 #define SHM_NAME "/air_control"
 #define SHM_ELEMENTS 3
@@ -21,6 +24,7 @@ int planes = 0;
 int takeoffs = 0;
 int total_takeoffs = 0;
 
+int shm_1;
 int* shm_ptr = NULL;
 
 pthread_mutex_t state_lock;
@@ -33,7 +37,7 @@ pthread_mutex_t runway2_lock;
 void MemoryCreate() {
   // TODO2: create the shared memory segment, configure it and store the PID of
   // the process in the first position of the memory block.
-  int shm_1 = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
+  shm_1 = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
   ftruncate(shm_1, SHM_BLOCK_SIZE);
   shm_ptr =
       mmap(NULL, SHM_BLOCK_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_1, 0);
@@ -97,7 +101,7 @@ void* TakeOffsFunction(void* arg) {
       continue;
     }
 
-    sleep(1);
+    usleep(1000);
 
     if (KrrntTrack == 1) {
       pthread_mutex_unlock(&runway1_lock);
@@ -108,7 +112,7 @@ void* TakeOffsFunction(void* arg) {
 
   kill(shm_ptr[1], SIGTERM);  // send SIGTERM to radio process
   munmap(shm_ptr, SHM_BLOCK_SIZE);
-  close(shm_ptr);
+  close(shm_1);
   // shm_unlink(SHM_NAME);
   return 0;
 }

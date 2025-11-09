@@ -1,4 +1,4 @@
-#define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE 500
 #include <fcntl.h>
 #include <mqueue.h>
 #include <pthread.h>
@@ -10,9 +10,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
+#include <sys/unistd.h>
 
-#include "functions.h"
+#include "../include/functions.h"
 
 #define SHM_NAME "/air_control"
 #define SHM_ELEMENTS 3
@@ -53,7 +53,7 @@ int main() {
     }
     shm_ptr[1] = radio_pid;  // store the pid of the radio process in second
                              // position of shared memory
-    execl("../radio/build/radio", "radio", SHM_NAME,
+    execl("../../test/radio", "radio", SHM_NAME,
           NULL);  // transforming child into radio
   } else {
     // TODO 6: Launch 5 threads which will be the controllers; each thread will
