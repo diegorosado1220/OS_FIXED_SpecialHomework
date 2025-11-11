@@ -1,0 +1,1 @@
+/usr/bin/cc CMakeFiles/ground.dir/src/main.c.o CMakeFiles/ground.dir/src/functions.c.o -o ground  -lm 

@@ -1,0 +1,3 @@
+/home/diego1220/LABS_OS/PP1/PP1/ground_control/build/CMakeFiles/ground.dir
+/home/diego1220/LABS_OS/PP1/PP1/ground_control/build/CMakeFiles/edit_cache.dir
+/home/diego1220/LABS_OS/PP1/PP1/ground_control/build/CMakeFiles/rebuild_cache.dir

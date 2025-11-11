@@ -1,5 +1,5 @@
 #define _XOPEN_SOURCE 500
-#include "functions.h"
+#include "../include/functions.h"
 
 #include <fcntl.h>
 #include <mqueue.h>
@@ -43,15 +43,16 @@ void Traffic(int signum) {
   
   if (queued_planes >= 10){
     printf("RUNWAY OVERLOADED\n");
-  } 
-  if (queued_planes < PLANES_LIMIT){
-    if(queued_planes == 16){
+    // return;
+  }
+  if (planes < PLANES_LIMIT){
+    if(planes == 16){
       planes += 4;
-    } else if(queued_planes == 17){
+    } else if(planes == 17){
       planes += 3;
-    } else if(queued_planes == 18){
+    } else if(planes == 18){
       planes += 2;
-    } else if(queued_planes == 19){
+    } else if(planes == 19){
       planes += 1;
     } else {
       planes += 5;
@@ -59,6 +60,24 @@ void Traffic(int signum) {
     kill(shm_ptr[1], SIGUSR2);
   }
   return;
+  // (void)signum;
+  // if (planes >= 10) {
+  //   printf("RUNWAY OVERLOADED\n");
+  // }
+  // if (planes < PLANES_LIMIT){
+  //   int free_slots = PLANES_LIMIT - planes;
+  //   // int to_add = (free_slots >= 5) ? 5 : free_slots;
+  //   int to_add;
+  // if (free_slots >= 5) {
+  //     to_add = 5;
+  // } else {
+  //     to_add = free_slots;
+  // }
+  //   if (to_add > 0) {
+  //       planes += to_add;
+  //       kill(shm_ptr[1], SIGUSR2);
+  //   }
+  // }
 }
 
 int main(int argc, char* argv[]) {
@@ -87,14 +106,28 @@ int main(int argc, char* argv[]) {
   //      "finalization of operations..." and terminate the program.
   //    - The SIGUSR1 handler should: increase the number of takeoffs by 5.
 
-  struct sigaction sa1;
+  struct sigaction sa1 = {0};
   sa1.sa_handler = SigHandler1;
-  sigaction(SIGUSR1, &sa1, NULL);
-  sigaction(SIGTERM, &sa1, NULL);
+  // sigaction(SIGUSR1, &sa1, NULL);
+  // sigaction(SIGTERM, &sa1, NULL);
 
-  struct sigaction sa3;
+  if (sigaction(SIGUSR1, &sa1, NULL) == -1) {
+    perror("sigaction SIGUSR1");
+    exit(EXIT_FAILURE);
+}
+if (sigaction(SIGTERM, &sa1, NULL) == -1) {
+    perror("sigaction SIGTERM");
+    exit(EXIT_FAILURE);
+}
+
+  struct sigaction sa3 = {0};
   sa3.sa_handler = alarm_handler;
-  sigaction(SIGALRM, &sa3, NULL);
+  // sigaction(SIGALRM, &sa3, NULL);
+
+  if (sigaction(SIGALRM, &sa3, NULL) == -1) {
+    perror("sigaction SIGALRM");
+    exit(EXIT_FAILURE);
+}
 
   // 2. Configure the timer to execute the Traffic function.
   struct itimerval timer;
@@ -126,6 +159,10 @@ void SigHandler1(int signal){
     exit(EXIT_SUCCESS);
   } else if (SIGUSR1 == signal) {
     takeoffs += 5;
+    // planes -=5;
+    // if (planes < 0) {
+    //   planes = 0;
+    // }
   }
 }
 void alarm_handler(int sig) {

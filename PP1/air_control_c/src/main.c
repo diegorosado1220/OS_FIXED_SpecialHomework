@@ -24,9 +24,14 @@ int main() {
 
   // TODO 3: Configure the SIGUSR2 signal to increment the planes on the runway
   // by 5.
-  struct sigaction sa;
+  struct sigaction sa = {0};
   sa.sa_handler = SigHandler2;
-  sigaction(SIGUSR2, &sa, NULL);
+  // sigaction(SIGUSR2, &sa, NULL);
+
+  if (sigaction(SIGUSR2, &sa, NULL) == -1) {
+    perror("sigaction SIGUSR2");
+    exit(EXIT_FAILURE);
+}
 
   // TODO 4: Launch the 'radio' executable and, once launched, store its PID in
   // the second position of the shared memory block.
@@ -60,6 +65,9 @@ int main() {
     // execute the TakeOffsFunction().
     pthread_t threadZ[5];
 
+    // pthread_mutex_init(&state_lock, NULL);
+    // pthread_mutex_init(&runway1_lock, NULL);
+    // pthread_mutex_init(&runway2_lock, NULL);
     for (int i = 0; i < 5; i++) {
       pthread_create(&threadZ[i], NULL, TakeOffsFunction, NULL);
     }

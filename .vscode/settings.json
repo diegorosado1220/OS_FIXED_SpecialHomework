@@ -1,6 +1,7 @@
 {
     "files.associations": {
-        "fcntl.h": "c"
+        "fcntl.h": "c",
+        "functions.h": "c"
     },
     "cmake.sourceDirectory": "/home/diego1220/LABS_OS/PP1/PP1/radio"
 }

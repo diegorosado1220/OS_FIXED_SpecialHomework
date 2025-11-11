@@ -9,6 +9,6 @@ void SigHandler2(int signal);
 // extern pid_t radioPID;
 void MemoryCreate(void);
 
-void* TakeOffsFunction();  // para que tambien este en main type shi
+void* TakeOffsFunction(void* arg);  // para que tambien este en main type shi
 
 #endif  // INCLUDE_FUNCTIONS_H_
