@@ -48,6 +48,8 @@ void MemoryCreate() {
   }
   shm_ptr[0] = getpid();  // store the pid of the current process in the first
                           // position of the memory block
+  shm_ptr[1] = 0;          // AÚN no hay radio
+  shm_ptr[2] = 0;
 
   // close(shm_1);
   // shm = addr;      //gpt
@@ -96,12 +98,12 @@ void* TakeOffsFunction(void* arg) {
       takeoffs++;
       total_takeoffs++;
 
-      printf("planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
+      // printf("planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
 
       // Avisar cada 5 despegues al RADIO y al GROUND
       if (takeoffs == 5) {
         kill(shm_ptr[1], SIGUSR1);  // radio
-        // kill(shm_ptr[2], SIGUSR1);  // ground
+        
         takeoffs = 0;
       }
 
@@ -154,7 +156,7 @@ void* TakeOffsFunction(void* arg) {
     //     printf("[AIR] planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
     //     if (takeoffs == 5) {
     //       kill(shm_ptr[1], SIGUSR1);
-    //       kill(shm_ptr[2], SIGUSR1);
+    //       
     //       takeoffs = 0;
     //     }
     //   }
@@ -171,7 +173,7 @@ void* TakeOffsFunction(void* arg) {
     //     printf("[AIR] planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
     //     if (takeoffs == 5) {
     //       kill(shm_ptr[1], SIGUSR1);
-    //       kill(shm_ptr[2], SIGUSR1);
+    //       
     //       takeoffs = 0;
     //     }
     //   }

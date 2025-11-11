@@ -38,12 +38,13 @@ void Traffic(int signum) {
   // Check if there are 10 or more waiting planes to send a signal and increment
   // planes. Ensure signals are sent and planes are incremented only if the
   // total number of planes has not been exceeded.
+  (void)signum;
 
   queued_planes = planes - takeoffs;
   
   if (queued_planes >= 10){
     printf("RUNWAY OVERLOADED\n");
-    // return;
+    return;
   }
   if (planes < PLANES_LIMIT){
     if(planes == 16){
@@ -57,27 +58,13 @@ void Traffic(int signum) {
     } else {
       planes += 5;
     }
-    kill(shm_ptr[1], SIGUSR2);
+    // kill(shm_ptr[1], SIGUSR2);
+    int radio_pid = shm_ptr[1];
+    if (radio_pid > 0) {
+      kill(radio_pid, SIGUSR2);
+    }
   }
   return;
-  // (void)signum;
-  // if (planes >= 10) {
-  //   printf("RUNWAY OVERLOADED\n");
-  // }
-  // if (planes < PLANES_LIMIT){
-  //   int free_slots = PLANES_LIMIT - planes;
-  //   // int to_add = (free_slots >= 5) ? 5 : free_slots;
-  //   int to_add;
-  // if (free_slots >= 5) {
-  //     to_add = 5;
-  // } else {
-  //     to_add = free_slots;
-  // }
-  //   if (to_add > 0) {
-  //       planes += to_add;
-  //       kill(shm_ptr[1], SIGUSR2);
-  //   }
-  // }
 }
 
 int main(int argc, char* argv[]) {
@@ -155,7 +142,7 @@ void SigHandler1(int signal){
   if (SIGTERM == signal) {
     munmap(shm_ptr, SHM_BLOCK_SIZE);
     close(fd);
-    printf("Terminating  ground cotrl\n");
+    // printf("Terminating  ground cotrl\n");
     exit(EXIT_SUCCESS);
   } else if (SIGUSR1 == signal) {
     takeoffs += 5;
