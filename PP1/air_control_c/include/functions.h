@@ -1,5 +1,5 @@
-#ifndef INCLUDE_FUNCTIONS_H_
-#define INCLUDE_FUNCTIONS_H_
+#ifndef AIR_CONTROL_C_INCLUDE_FUNCTIONS_H_
+#define AIR_CONTROL_C_INCLUDE_FUNCTIONS_H_
 
 void SigHandler2(int signal);
 
@@ -11,4 +11,4 @@ void MemoryCreate(void);
 
 void* TakeOffsFunction(void* arg);  // para que tambien este en main type shi
 
-#endif  // INCLUDE_FUNCTIONS_H_
+#endif  // AIR_CONTROL_C_INCLUDE_FUNCTIONS_H_

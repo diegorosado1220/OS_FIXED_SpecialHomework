@@ -1,16 +1,14 @@
 #define _XOPEN_SOURCE 500
 #include <fcntl.h>
-#include <mqueue.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 #include <sys/unistd.h>
+#include <sys/wait.h>
 
 #include "../include/functions.h"
 
@@ -19,22 +17,15 @@
 #define SHM_BLOCK_SIZE (SHM_ELEMENTS * sizeof(int))
 
 int main() {
-  // TODO 1: Call the function that creates the shared memory segment.
   MemoryCreate();
 
-  // TODO 3: Configure the SIGUSR2 signal to increment the planes on the runway
-  // by 5.
   struct sigaction sa = {0};
   sa.sa_handler = SigHandler2;
-  // sigaction(SIGUSR2, &sa, NULL);
 
   if (sigaction(SIGUSR2, &sa, NULL) == -1) {
     perror("sigaction SIGUSR2");
     exit(EXIT_FAILURE);
-}
-
-  // TODO 4: Launch the 'radio' executable and, once launched, store its PID in
-  // the second position of the shared memory block.
+  }
 
   pid_t radio_pid, air_control_pid;
   air_control_pid = getpid();
@@ -61,13 +52,8 @@ int main() {
     execl("./radio", "radio", SHM_NAME,
           NULL);  // transforming child into radio
   } else {
-    // TODO 6: Launch 5 threads which will be the controllers; each thread will
-    // execute the TakeOffsFunction().
     pthread_t threadZ[5];
 
-    // pthread_mutex_init(&state_lock, NULL);
-    // pthread_mutex_init(&runway1_lock, NULL);
-    // pthread_mutex_init(&runway2_lock, NULL);
     for (int i = 0; i < 5; i++) {
       pthread_create(&threadZ[i], NULL, TakeOffsFunction, NULL);
     }

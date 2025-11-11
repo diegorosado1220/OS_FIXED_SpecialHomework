@@ -4,18 +4,16 @@
 // #define TOTAL_TAKEOFFS 20
 
 #include <fcntl.h>
-#include <mqueue.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <unistd.h>
 #include <time.h>
+#include <unistd.h>
 
 #define SHM_NAME "/air_control"
 #define SHM_ELEMENTS 3
@@ -27,17 +25,12 @@ int total_takeoffs = 0;
 int shm_1;
 int* shm_ptr = NULL;
 
-pthread_mutex_t state_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t state_lock;
 
-// pthread_mutex_t* KrrntTrack;
-// int KrrntTrack = 0;
-pthread_mutex_t runway1_lock = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t runway2_lock = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t runway1_lock;
+pthread_mutex_t runway2_lock;
 
 void MemoryCreate() {
-  // TODO2: create the shared memory segment, configure it and store the PID of
-  // the process in the first position of the memory block.
-  // shm_unlink(SHM_NAME);
   shm_1 = shm_open(SHM_NAME, O_CREAT | O_RDWR, 0666);
   ftruncate(shm_1, SHM_BLOCK_SIZE);
   shm_ptr =
@@ -48,12 +41,8 @@ void MemoryCreate() {
   }
   shm_ptr[0] = getpid();  // store the pid of the current process in the first
                           // position of the memory block
-  shm_ptr[1] = 0;          // AÚN no hay radio
+  shm_ptr[1] = 0;
   shm_ptr[2] = 0;
-
-  // close(shm_1);
-  // shm = addr;      //gpt
-  // shm[0] = getpid();
 }
 
 void SigHandler2(int signal) {
@@ -63,28 +52,22 @@ void SigHandler2(int signal) {
 }
 
 void* TakeOffsFunction(void* arg) {
-  // TODO: implement the logic to control a takeoff thread
-  //    Use a loop that runs while total_takeoffs < TOTAL_TAKEOFFS
-  //    Use runway1_lock or runway2_lock to simulate a locked runway
-  //    Use state_lock for safe access to shared variables (planes,
-  //    takeoffs, total_takeoffs)
-  //    Simulate the time a takeoff takes with sleep(1)
-  //    Send SIGUSR1 every 5 local takeoffs
-  //    Send SIGTERM when the total takeoffs target is reached
+  pthread_mutex_init(&state_lock, NULL);
+  pthread_mutex_init(&runway1_lock, NULL);
+  pthread_mutex_init(&runway2_lock, NULL);
+
   while (1) {
     pthread_mutex_lock(&state_lock);
     if (total_takeoffs >= TOTAL_TAKEOFFS) {
-        pthread_mutex_unlock(&state_lock);
-        break;
+      pthread_mutex_unlock(&state_lock);
+      break;
     }
-    //------------------------------------------- 
-    // gpt fix or smth
     pthread_mutex_unlock(&state_lock);
-    int KrrntTrack = 0;
-     if (pthread_mutex_trylock(&runway1_lock) == 0) {
-      KrrntTrack = 1;
+    int krrnttrack = 0;
+    if (pthread_mutex_trylock(&runway1_lock) == 0) {
+      krrnttrack = 1;
     } else if (pthread_mutex_trylock(&runway2_lock) == 0) {
-      KrrntTrack = 2;
+      krrnttrack = 2;
     } else {
       usleep(1000);
       continue;
@@ -97,13 +80,8 @@ void* TakeOffsFunction(void* arg) {
       takeoffs++;
       total_takeoffs++;
 
-      // printf("planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
       if (takeoffs == 5) {
-        // kill(shm_ptr[1], SIGUSR1);  // radio
-        int radio_pid = shm_ptr[1];
-        if (radio_pid > 0) {
-        kill(radio_pid, SIGUSR1);
-        }
+        kill(shm_ptr[1], SIGUSR1);
         takeoffs = 0;
       }
 
@@ -112,18 +90,14 @@ void* TakeOffsFunction(void* arg) {
 
       sleep(1);
 
-      if (KrrntTrack == 1) {
+      if (krrnttrack == 1) {
         pthread_mutex_unlock(&runway1_lock);
       } else {
         pthread_mutex_unlock(&runway2_lock);
       }
-        
 
       if (just_reached_limit) {
-        int radio_pid = shm_ptr[1];
-        if (radio_pid > 0) {
-            kill(radio_pid, SIGTERM);
-        }              // radio
+        kill(shm_ptr[1], SIGTERM);
         munmap(shm_ptr, SHM_BLOCK_SIZE);
         close(shm_1);
         return NULL;
@@ -131,68 +105,13 @@ void* TakeOffsFunction(void* arg) {
 
     } else {
       pthread_mutex_unlock(&state_lock);
-      if (KrrntTrack == 1)
+      if (krrnttrack == 1) {
         pthread_mutex_unlock(&runway1_lock);
-      else
+      } else {
         pthread_mutex_unlock(&runway2_lock);
-
+      }
       usleep(1000);
     }
-    //------------------------------------------------------------
-    // pthread_mutex_unlock(&state_lock);
-    // int KrrntTrack = 0;
-    // if (pthread_mutex_trylock(&runway1_lock) == 0) {
-    //   KrrntTrack = 1;
-    //   pthread_mutex_lock(&state_lock);
-    //   if (planes > 0) {
-        
-    //     // KrrntTrack = 1;
-    //     planes--;
-    //     takeoffs++;
-    //     total_takeoffs++;
-    //     printf("[AIR] planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
-    //     if (takeoffs == 5) {
-    //       kill(shm_ptr[1], SIGUSR1);
-    //       
-    //       takeoffs = 0;
-    //     }
-    //   }
-    //   pthread_mutex_unlock(&state_lock);
-    // } else if (pthread_mutex_trylock(&runway2_lock) == 0) {
-    //   KrrntTrack = 2;
-    //   pthread_mutex_lock(&state_lock);
-    //   if (planes > 0) {
-        
-    //     // KrrntTrack = 2;
-    //     planes--;
-    //     takeoffs++;
-    //     total_takeoffs++;
-    //     printf("[AIR] planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
-    //     if (takeoffs == 5) {
-    //       kill(shm_ptr[1], SIGUSR1);
-    //       
-    //       takeoffs = 0;
-    //     }
-    //   }
-    //   pthread_mutex_unlock(&state_lock);
-    // } else {
-    //   usleep(
-    //       1000);  // if unsuccessful in locking runway, sleep for a short time
-    //   continue;
-    // }
-
-    // sleep(1);
-
-    // if (KrrntTrack == 1) {
-    //   pthread_mutex_unlock(&runway1_lock);
-    // } else if (KrrntTrack == 2){
-    //   pthread_mutex_unlock(&runway2_lock);
-    // }
   }
-
-  // kill(shm_ptr[1], SIGTERM);  // send SIGTERM to radio process
-  // munmap(shm_ptr, SHM_BLOCK_SIZE);
-  // close(shm_1);
-  // shm_unlink(SHM_NAME);
   return NULL;
 }
