@@ -90,7 +90,6 @@ void* TakeOffsFunction(void* arg) {
       continue;
     }
 
-    // 3) Zona crítica: actualizar estado si hay aviones
     pthread_mutex_lock(&state_lock);
 
     if (planes > 0 && total_takeoffs < TOTAL_TAKEOFFS) {
@@ -99,41 +98,39 @@ void* TakeOffsFunction(void* arg) {
       total_takeoffs++;
 
       // printf("planes=%d, total_takeoffs=%d\n", planes, total_takeoffs);
-
-      // Avisar cada 5 despegues al RADIO y al GROUND
       if (takeoffs == 5) {
-        kill(shm_ptr[1], SIGUSR1);  // radio
-        
+        // kill(shm_ptr[1], SIGUSR1);  // radio
+        int radio_pid = shm_ptr[1];
+        if (radio_pid > 0) {
+        kill(radio_pid, SIGUSR1);
+        }
         takeoffs = 0;
       }
 
-      // ¿Acabamos de llegar EXACTAMENTE al límite?
       int just_reached_limit = (total_takeoffs == TOTAL_TAKEOFFS);
-
       pthread_mutex_unlock(&state_lock);
 
-      // 4) Simular tiempo de despegue
       sleep(1);
 
-      // 5) Liberar la pista
-      if (KrrntTrack == 1)
+      if (KrrntTrack == 1) {
         pthread_mutex_unlock(&runway1_lock);
-      else
+      } else {
         pthread_mutex_unlock(&runway2_lock);
+      }
+        
 
-      // 6) Si este hilo ha hecho el despegue número 20,
-      //    él es el ÚNICO que manda SIGTERM y cierra memoria
       if (just_reached_limit) {
-        kill(shm_ptr[1], SIGTERM);              // radio
-        munmap(shm_ptr, SHM_BLOCK_SIZE);        // cerrar mapping
-        close(shm_1);                           // cerrar descriptor
-        return NULL;                            // salir del hilo
+        int radio_pid = shm_ptr[1];
+        if (radio_pid > 0) {
+            kill(radio_pid, SIGTERM);
+        }              // radio
+        munmap(shm_ptr, SHM_BLOCK_SIZE);
+        close(shm_1);
+        return NULL;
       }
 
     } else {
-      // No hay aviones o ya se alcanzó el objetivo
       pthread_mutex_unlock(&state_lock);
-
       if (KrrntTrack == 1)
         pthread_mutex_unlock(&runway1_lock);
       else

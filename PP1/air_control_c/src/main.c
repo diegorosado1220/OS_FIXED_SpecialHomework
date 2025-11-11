@@ -58,7 +58,7 @@ int main() {
     }
     shm_ptr[1] = radio_pid;  // store the pid of the radio process in second
                              // position of shared memory
-    execl("../../test/radio", "radio", SHM_NAME,
+    execl("./radio", "radio", SHM_NAME,
           NULL);  // transforming child into radio
   } else {
     // TODO 6: Launch 5 threads which will be the controllers; each thread will
